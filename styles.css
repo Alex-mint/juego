@@ -24,7 +24,7 @@ body {
     background-color: #ddd;
 }
 .black-cell {
-    background-color: black;
+    background-color: rgb(71, 71, 71);
 }
 .circle {
     width: 40px;
