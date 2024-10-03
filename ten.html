@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Board</title>
+    <style>
+        .board {
+            display: grid;
+            grid-template-columns: repeat(12, 50px); /* 12 колонок */
+            grid-template-rows: repeat(12, 50px); /* 12 строк */
+            gap: 2px;
+        }
+        .cell {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ccc;
+        }
+        .black-cell {
+            background-color: black;
+        }
+        .inner-cell {
+            background-color: white;
+        }
+        .circle {
+            width: 30px;
+            height: 30px;
+            background-color: red;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="board" id="board"></div>
+
+<!-- Аудиофайлы для движений -->
+<audio id="upSound" src="sound/ariva.mp3"></audio>
+<audio id="downSound" src="sound/abajo.mp3"></audio>
+<audio id="leftSound" src="sound/izquierda.mp3"></audio>
+<audio id="rightSound" src="sound/derecha.mp3"></audio>
+<audio id="stopSound" src="sound/fin.mp3"></audio>
+
+<script>
+    let stopTimer; // Переменная для хранения таймера
+
+    function createBoard() {
+        const board = document.getElementById('board');
+        const boardSize = 12; // Размер поля 12x12
+        const totalCells = boardSize * boardSize; // 144 ячейки
+        const centralCells = getCentralCells(boardSize); // Получаем центральные клетки (10x10)
+        let circlePosition = centralCells[Math.floor(Math.random() * centralCells.length)]; // Случайный выбор одной из центральных клеток
+
+        // Создаем 144 ячейки (12x12)
+        for (let i = 0; i < totalCells; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+
+            // Черные клетки по периметру
+            if (isBlackCell(i, boardSize)) {
+                cell.classList.add('black-cell');
+            } else {
+                cell.classList.add('inner-cell');
+            }
+
+            // Размещаем круг в одной из центральных клеток
+            if (i === circlePosition) {
+                const circle = document.createElement('div');
+                circle.classList.add('circle');
+                cell.appendChild(circle);
+            }
+
+            board.appendChild(cell);
+        }
+
+        // Добавляем глобальный обработчик клика на документ
+        document.addEventListener('click', function(event) {
+            const circle = document.querySelector('.circle');
+            if (circle) {
+                moveCircle(circle.parentElement);
+            }
+        });
+    }
+
+    // Функция для определения центральных клеток 10x10
+    function getCentralCells(boardSize) {
+        const centralCells = [];
+        for (let row = 1; row < boardSize - 1; row++) {
+            for (let col = 1; col < boardSize - 1; col++) {
+                centralCells.push(row * boardSize + col);
+            }
+        }
+        return centralCells;
+    }
+
+    // Функция для определения, является ли клетка черной (по периметру)
+    function isBlackCell(index, boardSize) {
+        const row = Math.floor(index / boardSize);
+        const col = index % boardSize;
+        // Черные клетки по границам 12x12
+        return row === 0 || row === boardSize - 1 || col === 0 || col === boardSize - 1;
+    }
+
+    function moveCircle(currentCell) {
+        const board = document.getElementById('board');
+        const cells = Array.from(board.children);
+        const index = cells.indexOf(currentCell);
+        const neighbors = [];
+        let direction = ''; // Для хранения направления движения
+
+        // Определяем соседние клетки (вверх, вниз, влево, вправо)
+        if (index - 12 >= 0) neighbors.push({ index: index - 12, direction: 'up' }); // Вверх
+        if (index + 12 < 144) neighbors.push({ index: index + 12, direction: 'down' }); // Вниз
+        if (index % 12 !== 0) neighbors.push({ index: index - 1, direction: 'left' }); // Влево
+        if ((index + 1) % 12 !== 0) neighbors.push({ index: index + 1, direction: 'right' }); // Вправо
+
+        // Выбираем случайную соседнюю клетку
+        const newMove = neighbors[Math.floor(Math.random() * neighbors.length)];
+        const newIndex = newMove.index;
+        direction = newMove.direction;
+
+        // Перемещаем круг в новую клетку
+        const circle = currentCell.querySelector('.circle');
+        cells[newIndex].appendChild(circle);
+
+        // Воспроизводим звук в зависимости от направления
+        playSound(direction);
+
+        // Проверяем, попал ли шар на черную клетку
+        if (cells[newIndex].classList.contains('black-cell')) {
+            // Запускаем таймер на 3 секунды
+            stopTimer = setTimeout(() => {
+                playSound('stop');
+            }, 1500);
+        } else {
+            // Если шар перемещен на другую клетку до истечения 3 секунд, сбрасываем таймер
+            clearTimeout(stopTimer);
+        }
+    }
+
+    function playSound(direction) {
+        let sound;
+        switch(direction) {
+            case 'up':
+                sound = document.getElementById('upSound');
+                break;
+            case 'down':
+                sound = document.getElementById('downSound');
+                break;
+            case 'left':
+                sound = document.getElementById('leftSound');
+                break;
+            case 'right':
+                sound = document.getElementById('rightSound');
+                break;
+            case 'stop':
+                sound = document.getElementById('stopSound');
+                break;
+        }
+        if (sound) {
+            sound.play();
+        }
+    }
+
+    createBoard();
+</script>
+
+</body>
+</html>
