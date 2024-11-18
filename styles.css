@@ -29,8 +29,16 @@ body {
 .circle {
     width: 40px;
     height: 40px;
-    background-color: red;
     border-radius: 50%;
+    position: absolute;
+}
+
+.circle1 {
+    background-color: red; /* Первый шар — красный */
+}
+
+.circle2 {
+    background-color: black; /* Второй шар — чёрный */
 }
 #gameOver {
     margin-top: 20px;
